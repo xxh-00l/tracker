@@ -50,6 +50,10 @@ button{font-family:inherit;}
   display:grid;
   grid-template-columns:224px 1fr 340px;
   min-height:100vh;
+  transition:grid-template-columns 0.28s ease-out;
+}
+.shell.panel-collapsed{
+  grid-template-columns:224px 1fr 0px;
 }
 
 /* ===== Left nav ===== */
@@ -144,8 +148,11 @@ button{font-family:inherit;}
 .primary-btn{
   border:none; background:var(--green); color:#fff; border-radius:8px;
   padding:9px 16px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  transition:transform 0.1s ease, background 0.15s ease;
 }
 .primary-btn:hover{opacity:0.92;}
+.primary-btn:active{transform:scale(0.98);}
+.primary-btn.active{background:var(--ink); box-shadow:inset 0 0 0 1px rgba(255,255,255,0.15);}
 
 .section{margin-bottom:36px;}
 .section-head{
@@ -253,6 +260,9 @@ hr.divider{border:none; border-top:1px solid var(--line); margin:36px 0;}
   border:none; background:var(--ink); color:#fff; border-radius:6px; padding:6px 12px;
   font-size:12px; cursor:pointer;
 }
+.sf-error{
+  font-size:11.5px; color:var(--sun-red); padding:2px 2px 10px; min-height:1px;
+}
 
 details.collapse{
   border-top:1px solid var(--line-soft);
@@ -310,6 +320,16 @@ details.collapse textarea{
   border-left:1px solid var(--line);
   background:var(--panel);
   padding:32px 24px;
+  overflow-x:hidden;
+  overflow-y:auto;
+  transition:opacity 0.2s ease, transform 0.28s ease-out;
+  opacity:1;
+  transform:translateX(0);
+}
+.shell.panel-collapsed .context{
+  opacity:0;
+  transform:translateX(16px);
+  padding-left:0; padding-right:0;
 }
 .ctx-block{
   background:var(--surface);
@@ -375,6 +395,33 @@ details.collapse textarea{
 .ctx-add input[name="date"]{width:72px;}
 .ctx-add input[name="title"]{flex:1;}
 .ctx-add button{border:none; background:var(--ink); color:#fff; border-radius:6px; padding:5px 10px; font-size:11px; cursor:pointer;}
+.ctx-error{font-size:11px; color:var(--sun-red); margin-top:4px; min-height:1px;}
+
+.up-item{position:relative; padding-right:20px;}
+.dl-row{
+  display:flex; justify-content:space-between; align-items:center; font-size:12.5px; margin-bottom:8px;
+  position:relative; padding-right:20px; cursor:pointer;
+}
+.dl-row .dtitle{color:var(--ink);}
+.dl-row .ddate{color:var(--muted); font-size:11.5px;}
+.up-item, .dl-row{cursor:pointer;}
+.item-del{
+  position:absolute; right:0; top:50%; transform:translateY(-50%);
+  border:none; background:none; color:var(--muted); font-size:14px; cursor:pointer; opacity:0;
+  width:18px; height:18px; line-height:1;
+}
+.up-item:hover .item-del, .dl-row:hover .item-del{opacity:1;}
+.item-del:hover{color:var(--sun-red);}
+
+.undo-toast{
+  position:fixed; left:50%; bottom:28px; transform:translateX(-50%);
+  background:var(--ink); color:#fff; border-radius:10px; padding:11px 16px;
+  display:flex; align-items:center; gap:16px; font-size:12.5px; box-shadow:0 10px 30px rgba(0,0,0,0.25); z-index:300;
+}
+.undo-toast #undoBtn{border:none; background:none; color:#9FC2AC; font-weight:600; cursor:pointer; font-size:12.5px;}
+
+.detail-card{width:380px; max-height:86vh; overflow-y:auto;}
+.detail-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
 
 .dl-item{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:8px;}
 .dl-item .dtitle{color:var(--ink);}
@@ -580,11 +627,15 @@ details.collapse textarea{
 .pl-sort{font-size:11.5px; color:var(--muted); font-weight:400;}
 .proj-list{display:flex; flex-direction:column; gap:10px;}
 .proj-row{
+  display:flex; align-items:flex-start; gap:10px;
   border:1px solid var(--line); border-radius:10px; padding:14px 15px; cursor:pointer; background:var(--surface);
+  transition:transform 0.1s ease;
 }
+.proj-row:active{transform:scale(0.99);}
 .proj-row:hover{border-color:var(--ink-soft);}
 .proj-row.selected{border-color:var(--ink); background:var(--panel);}
-.proj-row.completed-row{opacity:0.6;}
+.pr-body{flex:1; min-width:0;}
+.proj-check{margin-top:3px; flex-shrink:0;}
 .pr-top{display:flex; align-items:center; gap:8px; margin-bottom:9px;}
 .pr-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
 .pr-dot.lg{width:11px; height:11px;}
@@ -597,6 +648,37 @@ details.collapse textarea{
 .proj-completed summary{font-size:12.5px; color:var(--muted); cursor:pointer; list-style:none;}
 .proj-completed summary::-webkit-details-marker{display:none;}
 .proj-empty{font-size:12.5px; color:var(--muted); line-height:1.7; padding:20px 4px;}
+.proj-empty-state{
+  text-align:center; padding:50px 20px; border:1px dashed var(--line); border-radius:12px;
+}
+.proj-empty-state .pe-icon{font-size:26px; margin-bottom:10px; opacity:0.7;}
+.proj-empty-state .pe-title{font-size:13.5px; font-weight:600; margin-bottom:4px;}
+.proj-empty-state .pe-sub{font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5;}
+.proj-empty-state .pe-cta{
+  border:none; background:var(--green); color:#fff; border-radius:8px; padding:8px 16px; font-size:12.5px; cursor:pointer;
+}
+.proj-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.proj-card{
+  display:flex; flex-direction:column; gap:9px;
+  border:1px solid var(--line); border-radius:10px; padding:14px; cursor:pointer; background:var(--surface);
+  transition:transform 0.1s ease;
+}
+.proj-card:active{transform:scale(0.99);}
+.proj-card:hover{border-color:var(--ink-soft);}
+.proj-card.selected{border-color:var(--ink); background:var(--panel);}
+.proj-card .pr-body{width:100%;}
+
+.bulk-bar{
+  display:flex; align-items:center; gap:14px; background:var(--panel); border:1px solid var(--line);
+  border-radius:9px; padding:10px 14px; margin-bottom:16px; font-size:12.5px; color:var(--ink-soft);
+}
+.bulk-bar button{
+  border:1px solid var(--line); background:var(--surface); border-radius:6px; padding:5px 11px; font-size:12px; cursor:pointer; color:var(--ink-soft);
+}
+.bulk-bar button:hover{color:var(--ink);}
+.bulk-bar #bulkDeleteBtn{color:var(--sun-red); border-color:var(--sun-red);}
+
+.proj-menu{width:220px;}
 .proj-empty-detail{font-size:13px; color:var(--muted); line-height:1.7; padding:60px 20px; text-align:center;}
 
 .proj-detail-col{border-left:1px solid var(--line); padding-left:44px;}
@@ -808,6 +890,48 @@ details.collapse textarea{
 }
 .quicklink-row:first-of-type{border-top:none;}
 .quicklink-row:hover{color:var(--ink);}
+
+/* ===== Page menu (Today ⋯) ===== */
+.page-menu-wrap{position:relative;}
+.page-menu{
+  position:absolute; top:38px; right:0; width:200px; background:#fff;
+  border-radius:12px; border:1px solid var(--line); box-shadow:0 10px 30px rgba(28,27,24,0.14);
+  padding:6px; z-index:60;
+  opacity:0; transform:translateY(-6px); pointer-events:none;
+  transition:opacity 0.15s ease, transform 0.15s ease;
+}
+.page-menu.show{opacity:1; transform:translateY(0); pointer-events:auto;}
+.pm-header{
+  font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted);
+  padding:7px 12px 5px;
+}
+.pm-item{
+  display:block; width:100%; text-align:left; background:none; border:none; border-radius:8px;
+  padding:9px 12px; font-size:13px; color:var(--ink); cursor:pointer; font-family:'Pretendard',sans-serif;
+}
+.pm-item:hover{background:var(--panel);}
+.pm-item.danger{color:var(--sun-red);}
+.pm-divider{height:1px; background:var(--line-soft); margin:6px 4px;}
+
+/* ===== Confirm modal ===== */
+.confirm-overlay{
+  position:fixed; inset:0; background:rgba(28,27,24,0.32); display:flex; align-items:center; justify-content:center; z-index:200;
+}
+.confirm-card{
+  background:#fff; border-radius:14px; padding:24px; width:340px; box-shadow:0 24px 60px rgba(0,0,0,0.22);
+}
+.confirm-title{font-size:14.5px; font-weight:600; margin-bottom:8px; line-height:1.4;}
+.confirm-text{font-size:12.5px; color:var(--ink-soft); line-height:1.55; margin-bottom:22px;}
+.confirm-actions{display:flex; justify-content:flex-end; gap:8px;}
+.confirm-btn{border-radius:8px; padding:8px 16px; font-size:12.5px; cursor:pointer; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft);}
+.confirm-btn.reset{background:var(--sun-red); border-color:var(--sun-red); color:#fff;}
+
+@media print{
+  .nav, .context, .page-menu-wrap, .tabbar, .primary-btn, .add-link, .planner-tabs, .save-row button{ display:none !important; }
+  .shell{ display:block; }
+  .workspace{ padding:0; max-width:none; width:auto; }
+  body{ min-width:0; }
+}
 </style>
 </head>
 <body>
@@ -839,6 +963,8 @@ details.collapse textarea{
 
 </div>
 
+<div id="modalRoot"></div>
+
 <script>
 const STORAGE_KEY = 'working-journal-v1';
 let store = { days:{}, upcoming:[], deadlines:[], quickNote:'', events:[], projects:[], archiveFavorites:{} };
@@ -850,10 +976,20 @@ let plannerSubView = 'weekly'; // 'weekly' | 'monthly' | 'projects'
 let selectedProjectId = null;
 let projectInspectorMode = 'view'; // 'view' | 'create'
 let projectDescExpanded = false;
+let projectPanelOpen = false;
+let projectSortMode = 'newest'; // 'newest'|'oldest'|'name'|'progress'
+let projectViewMode = 'list'; // 'list'|'card'
+let projectStatusFilter = 'all'; // 'all'|'active'|'completed'|'archived'
+let projectMenuOpen = false;
+let projectMultiSelect = false;
+let projectSelectedIds = new Set();
 let archiveSearchQuery = '';
 let archiveFilter = { types: new Set(), projectId: null, favoritesOnly: false };
 let archiveFilterOpen = false;
 let archiveSelectedEntryId = null;
+let todayMenuOpen = false;
+let resetConfirmOpen = false;
+let detailModalState = null; // {kind:'upcoming'|'deadlines', id} | null
 let plannerSelection = null; // {mode:'view', id} | {mode:'create', date, time} | {mode:'day', date} | null
 let currentView = 'today';
 let saveTimer = null;
@@ -865,8 +1001,16 @@ const CATS = {
   'Personal':  {color:'var(--amber)', bg:'var(--amber-bg)'},
   'Reading':   {color:'var(--purple)',bg:'var(--purple-bg)'}
 };
+const PRIORITY_OPTIONS = ['없음','낮음','보통','높음'];
+const REMINDER_OFFSET_OPTIONS = ['없음','당일','1일 전','3일 전','1주 전'];
 
 function pad(n){ return String(n).padStart(2,'0'); }
+function isValidTimeStr(str){
+  const m = str.match(/^([0-9]{1,2}):([0-9]{1,2})$/);
+  if(!m) return false;
+  const h = parseInt(m[1],10), mi = parseInt(m[2],10);
+  return h>=0 && h<=23 && mi>=0 && mi<=59;
+}
 function keyOf(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 function todayKey(){ return keyOf(new Date()); }
 const WD = ['일','월','화','수','목','금','토'];
@@ -935,6 +1079,12 @@ function renderRightPanel(){
   else if(currentView==='archive') renderArchiveInspector();
   else if(currentView==='insights') renderInsightsSummary();
   else renderDefaultContext();
+  updateShellPanelClass();
+}
+function updateShellPanelClass(){
+  const shell = document.querySelector('.shell');
+  const collapsed = (currentView==='planner' && plannerSubView==='projects' && !projectPanelOpen);
+  shell.classList.toggle('panel-collapsed', collapsed);
 }
 
 /* ================= TODAY VIEW ================= */
@@ -953,10 +1103,30 @@ function renderToday(){
         <div class="ws-subtitle">${isToday ? dateLabel : '오늘이 아닌 날짜를 보고 있어요'}${!isToday ? `<span class="jump" id="jumpToday">오늘로 이동</span>`:''}</div>
       </div>
       <div class="ws-actions">
-        <button class="icon-btn">✎</button>
-        <button class="icon-btn">⋯</button>
+        <div class="page-menu-wrap">
+          <button class="icon-btn" id="pageMenuBtn">⋯</button>
+          <div class="page-menu ${todayMenuOpen?'show':''}" id="pageMenu">
+            <div class="pm-header">Page Options</div>
+            <button class="pm-item" id="pmExport">Export as PDF</button>
+            <button class="pm-item" id="pmDuplicate">Duplicate Today</button>
+            <button class="pm-item danger" id="pmReset">Reset Today</button>
+            <div class="pm-divider"></div>
+            <button class="pm-item" id="pmSettings">Settings</button>
+          </div>
+        </div>
       </div>
     </div>
+    ${resetConfirmOpen ? `
+    <div class="confirm-overlay" id="resetOverlay">
+      <div class="confirm-card">
+        <div class="confirm-title">오늘 작성한 내용을 모두 삭제하시겠습니까?</div>
+        <div class="confirm-text">Today 페이지의 모든 기록이 초기화되며 되돌릴 수 없어요.</div>
+        <div class="confirm-actions">
+          <button class="confirm-btn cancel" id="resetCancelBtn">Cancel</button>
+          <button class="confirm-btn reset" id="resetConfirmBtn">Reset</button>
+        </div>
+      </div>
+    </div>` : ''}
 
     <div class="section">
       <div class="section-head plan"><div class="bar"></div><div class="label">PLAN</div></div>
@@ -1027,6 +1197,38 @@ function renderToday(){
     document.getElementById('jumpToday').addEventListener('click', ()=>{ selectedDateKey = todayKey(); renderToday(); renderRightPanel(); });
   }
 
+  document.getElementById('pageMenuBtn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    todayMenuOpen = !todayMenuOpen;
+    renderToday();
+  });
+  if(todayMenuOpen){
+    document.getElementById('pmExport').addEventListener('click', ()=>{
+      todayMenuOpen = false;
+      window.print();
+    });
+    document.getElementById('pmDuplicate').addEventListener('click', ()=>{
+      todayMenuOpen = false;
+      duplicateToday();
+      renderToday();
+    });
+    document.getElementById('pmReset').addEventListener('click', ()=>{
+      todayMenuOpen = false;
+      resetConfirmOpen = true;
+      renderToday();
+    });
+    document.getElementById('pmSettings').addEventListener('click', ()=>{
+      todayMenuOpen = false;
+      alert('Settings 페이지는 아직 준비 중이에요.');
+      renderToday();
+    });
+  }
+  if(resetConfirmOpen){
+    document.getElementById('resetOverlay').addEventListener('click', (e)=>{ if(e.target.id==='resetOverlay') closeResetConfirm(); });
+    document.getElementById('resetCancelBtn').addEventListener('click', closeResetConfirm);
+    document.getElementById('resetConfirmBtn').addEventListener('click', confirmResetToday);
+  }
+
   ['f-intention','f-focus','f-wb','f-dn','f-reflection','f-lesson'].forEach(id=>{
     const map = {'f-intention':'intention','f-focus':'focus','f-wb':'workingBlocks','f-dn':'dailyNotes','f-reflection':'reflection','f-lesson':'lesson'};
     document.getElementById(id).addEventListener('input', (e)=>{
@@ -1048,7 +1250,7 @@ function renderSchedule(d){
   if(schedFormOpen){
     html += `
       <div class="add-form">
-        <input type="text" name="time" id="sf-time" placeholder="09:00">
+        <input type="text" name="time" id="sf-time" placeholder="09:00" inputmode="numeric" maxlength="5" autocomplete="off">
         <input type="text" name="title" id="sf-title" placeholder="일정 제목">
         <select id="sf-tag">
           <option value="집중">집중</option>
@@ -1058,6 +1260,7 @@ function renderSchedule(d){
         <input type="text" name="note" id="sf-note" placeholder="메모 (선택)">
         <button id="sf-save">추가</button>
       </div>
+      <div class="sf-error" id="sfError"></div>
     `;
   }
   if(d.schedule.length===0 && !schedFormOpen){
@@ -1080,8 +1283,27 @@ function renderSchedule(d){
   list.innerHTML = html;
 
   if(schedFormOpen){
+    const sfTimeEl = document.getElementById('sf-time');
+    sfTimeEl.addEventListener('input', (e)=>{
+      const digits = e.target.value.replace(/\D/g,'').slice(0,4);
+      e.target.value = digits.length<=2 ? digits : digits.slice(0,2)+':'+digits.slice(2,4);
+      document.getElementById('sfError').textContent = '';
+    });
+    sfTimeEl.addEventListener('keypress', (e)=>{
+      if(!/[0-9]/.test(e.key)) e.preventDefault();
+    });
     document.getElementById('sf-save').addEventListener('click', ()=>{
-      const time = document.getElementById('sf-time').value.trim() || '00:00';
+      const rawTime = document.getElementById('sf-time').value.trim();
+      const errorEl = document.getElementById('sfError');
+      let time;
+      if(rawTime===''){
+        time = '00:00';
+      } else if(isValidTimeStr(rawTime)){
+        time = rawTime;
+      } else {
+        errorEl.textContent = 'Invalid Time — 00:00~23:59 사이로 입력해 주세요.';
+        return;
+      }
       const title = document.getElementById('sf-title').value.trim();
       const tag = document.getElementById('sf-tag').value;
       const note = document.getElementById('sf-note').value.trim();
@@ -1109,6 +1331,25 @@ function renderSchedule(d){
 function toggleScheduleForm(d){
   schedFormOpen = !schedFormOpen;
   renderSchedule(d);
+}
+
+function duplicateToday(){
+  const d = ensureDay(selectedDateKey);
+  store.dailyTemplate = {
+    intention: d.intention, focus: d.focus, workingBlocks: d.workingBlocks, dailyNotes: d.dailyNotes,
+    schedule: JSON.parse(JSON.stringify(d.schedule||[])), tomorrow: JSON.parse(JSON.stringify(d.tomorrow||[]))
+  };
+  scheduleSave();
+  alert('오늘의 내용을 템플릿으로 저장했어요.');
+}
+function closeResetConfirm(){ resetConfirmOpen = false; renderToday(); }
+function confirmResetToday(){
+  delete store.days[selectedDateKey];
+  ensureDay(selectedDateKey);
+  resetConfirmOpen = false;
+  scheduleSave();
+  renderToday();
+  renderRightPanel();
 }
 
 function renderTomorrow(d){
@@ -1170,10 +1411,11 @@ function renderDefaultContext(){
       <summary>Upcoming <span class="chev">▾</span></summary>
       <div class="up-list" id="upList"></div>
       <div class="ctx-add">
-        <input type="text" name="date" placeholder="MM/DD" id="upDate">
+        <input type="text" name="date" placeholder="MM/DD" id="upDate" inputmode="numeric" maxlength="5" autocomplete="off">
         <input type="text" name="title" placeholder="일정 제목" id="upTitle">
         <button id="upAddBtn">+</button>
       </div>
+      <div class="ctx-error" id="upError"></div>
       <button class="up-more" data-view="planner">전체 일정 보기 →</button>
     </details>
 
@@ -1181,10 +1423,11 @@ function renderDefaultContext(){
       <summary>Deadlines <span class="chev">▾</span></summary>
       <div id="dlList" style="margin-top:14px;"></div>
       <div class="ctx-add">
-        <input type="text" name="date" placeholder="MM/DD" id="dlDate">
+        <input type="text" name="date" placeholder="MM/DD" id="dlDate" inputmode="numeric" maxlength="5" autocomplete="off">
         <input type="text" name="title" placeholder="마감 항목" id="dlTitle">
         <button id="dlAddBtn">+</button>
       </div>
+      <div class="ctx-error" id="dlError"></div>
     </details>
 
     <details class="ctx-block">
@@ -1204,22 +1447,49 @@ function renderDefaultContext(){
 
   document.getElementById('calPrev').addEventListener('click', ()=>{ calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); });
   document.getElementById('calNext').addEventListener('click', ()=>{ calCursor.setMonth(calCursor.getMonth()+1); renderCalendar(); });
+
+  bindDateAutoFormat('upDate', 'upError');
+  bindDateAutoFormat('dlDate', 'dlError');
+
   document.getElementById('upAddBtn').addEventListener('click', ()=>{
-    const date = document.getElementById('upDate').value.trim();
+    const raw = document.getElementById('upDate').value.trim();
     const title = document.getElementById('upTitle').value.trim();
-    if(!date || !title) return;
-    store.upcoming.push({date, title});
+    const errorEl = document.getElementById('upError');
+    if(!title) return;
+    if(!isValidMonthDayStr(raw)){ errorEl.textContent = 'Invalid Date — MM/DD 형식으로 입력해 주세요.'; return; }
+    store.upcoming.push({ id: uid(), type:'reminder', date: raw, title });
     document.getElementById('upDate').value=''; document.getElementById('upTitle').value='';
+    errorEl.textContent = '';
     scheduleSave(); renderUpcoming();
   });
   document.getElementById('dlAddBtn').addEventListener('click', ()=>{
-    const date = document.getElementById('dlDate').value.trim();
+    const raw = document.getElementById('dlDate').value.trim();
     const title = document.getElementById('dlTitle').value.trim();
-    if(!date || !title) return;
-    store.deadlines.push({date, title});
+    const errorEl = document.getElementById('dlError');
+    if(!title) return;
+    if(!isValidMonthDayStr(raw)){ errorEl.textContent = 'Invalid Date — MM/DD 형식으로 입력해 주세요.'; return; }
+    store.deadlines.push({ id: uid(), type:'reminder', date: raw, title });
     document.getElementById('dlDate').value=''; document.getElementById('dlTitle').value='';
+    errorEl.textContent = '';
     scheduleSave(); renderDeadlines();
   });
+}
+function bindDateAutoFormat(inputId, errorId){
+  const el = document.getElementById(inputId);
+  el.addEventListener('input', (e)=>{
+    const digits = e.target.value.replace(/\D/g,'').slice(0,4);
+    e.target.value = digits.length<=2 ? digits : digits.slice(0,2)+'/'+digits.slice(2,4);
+    document.getElementById(errorId).textContent = '';
+  });
+  el.addEventListener('keypress', (e)=>{
+    if(!/[0-9]/.test(e.key)) e.preventDefault();
+  });
+}
+function isValidMonthDayStr(str){
+  const m = str.match(/^([0-9]{1,2})\/([0-9]{1,2})$/);
+  if(!m) return false;
+  const mm = parseInt(m[1],10), dd = parseInt(m[2],10);
+  return mm>=1 && mm<=12 && dd>=1 && dd<=31;
 }
 function renderGlance(){
   const d = ensureDay(selectedDateKey);
@@ -1265,30 +1535,154 @@ function renderCalendar(){
   });
 }
 function renderUpcoming(){
+  store.upcoming.forEach(x=>{ if(!x.id) x.id=uid(); if(!x.type) x.type='reminder'; });
   const list = document.getElementById('upList');
   const items = store.upcoming.slice().sort((a,b)=> a.date.localeCompare(b.date)).slice(0,4);
   if(items.length===0){
     list.innerHTML = `<div class="up-empty">등록된 일정이 없어요.</div>`;
   } else {
     list.innerHTML = items.map(it=>`
-      <div class="up-item">
+      <div class="up-item" data-id="${it.id}">
         <div class="update">${it.date}</div>
         <div class="uptitle">${it.title}</div>
-        <div class="updot"></div>
+        <button class="item-del" data-del="${it.id}" title="삭제">×</button>
       </div>
     `).join('');
   }
+  list.querySelectorAll('.up-item').forEach(row=>{
+    row.addEventListener('click', ()=> openDetailModal('upcoming', row.dataset.id));
+  });
+  list.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); deleteReminder('upcoming', btn.dataset.del); });
+  });
 }
 function renderDeadlines(){
+  store.deadlines.forEach(x=>{ if(!x.id) x.id=uid(); if(!x.type) x.type='reminder'; });
   const list = document.getElementById('dlList');
   if(store.deadlines.length===0){
     list.innerHTML = `<div style="font-size:12px;color:var(--muted);">등록된 마감이 없어요.</div>`;
     return;
   }
   list.innerHTML = store.deadlines.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(dl=>`
-    <div class="dl-item"><div class="dtitle">${dl.title}</div><div class="ddate">${dl.date}</div></div>
+    <div class="dl-row" data-id="${dl.id}">
+      <div class="dtitle">${dl.title}</div>
+      <div class="ddate">${dl.date}</div>
+      <button class="item-del" data-del="${dl.id}" title="삭제">×</button>
+    </div>
   `).join('');
+  list.querySelectorAll('.dl-row').forEach(row=>{
+    row.addEventListener('click', ()=> openDetailModal('deadlines', row.dataset.id));
+  });
+  list.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{ e.stopPropagation(); deleteReminder('deadlines', btn.dataset.del); });
+  });
 }
+function deleteReminder(kind, id){
+  const arr = kind==='upcoming' ? store.upcoming : store.deadlines;
+  const idx = arr.findIndex(x=>x.id===id);
+  if(idx<0) return;
+  const removed = arr[idx];
+  arr.splice(idx,1);
+  scheduleSave();
+  if(kind==='upcoming') renderUpcoming(); else renderDeadlines();
+  showUndoToast(kind==='upcoming' ? 'Upcoming deleted' : 'Deadline deleted', ()=>{
+    arr.push(removed);
+    scheduleSave();
+    if(kind==='upcoming') renderUpcoming(); else renderDeadlines();
+  });
+}
+function showUndoToast(message, onUndo){
+  const existing = document.getElementById('undoToast');
+  if(existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'undoToast';
+  toast.className = 'undo-toast';
+  toast.innerHTML = `<span>${message}</span><button id="undoBtn">Undo</button>`;
+  document.body.appendChild(toast);
+  const timer = setTimeout(()=>{ if(toast.parentNode) toast.remove(); }, 4500);
+  toast.querySelector('#undoBtn').addEventListener('click', ()=>{
+    clearTimeout(timer);
+    toast.remove();
+    onUndo();
+  });
+}
+
+/* ================= REMINDER DETAIL MODAL (Upcoming / Deadlines) ================= */
+function openDetailModal(kind, id){
+  detailModalState = { kind, id };
+  renderDetailModal();
+}
+function closeDetailModal(){
+  detailModalState = null;
+  renderDetailModal();
+}
+function renderDetailModal(){
+  const root = document.getElementById('modalRoot');
+  if(!detailModalState){ root.innerHTML=''; return; }
+  const arr = detailModalState.kind==='upcoming' ? store.upcoming : store.deadlines;
+  const item = arr.find(x=>x.id===detailModalState.id);
+  if(!item){ detailModalState=null; root.innerHTML=''; return; }
+  const heading = detailModalState.kind==='upcoming' ? 'Reminder Details' : 'Deadline Details';
+
+  root.innerHTML = `
+    <div class="confirm-overlay" id="detailOverlay">
+      <div class="confirm-card detail-card">
+        <div class="detail-head">
+          <div class="confirm-title" style="margin-bottom:0;">${heading}</div>
+          <button class="insp-close" id="detailCloseBtn">×</button>
+        </div>
+        <div class="insp-field"><label>Date</label><input type="text" id="dm-date" value="${item.date}" placeholder="MM/DD" inputmode="numeric" maxlength="5" autocomplete="off"></div>
+        <div class="ctx-error" id="dmDateError"></div>
+        <div class="insp-field"><label>Title</label><input type="text" id="dm-title" value="${(item.title||'').replace(/"/g,'&quot;')}"></div>
+        <div class="insp-field"><label>Notes</label><textarea id="dm-notes" placeholder="메모">${item.notes||''}</textarea></div>
+        <div class="insp-row2">
+          <div class="insp-field"><label>Priority</label>
+            <select id="dm-priority">${PRIORITY_OPTIONS.map(o=>`<option ${item.priority===o?'selected':''}>${o}</option>`).join('')}</select>
+          </div>
+          <div class="insp-field"><label>Category</label>
+            <select id="dm-category">
+              <option value="" ${!item.category?'selected':''}>없음</option>
+              ${Object.keys(CATS).map(c=>`<option ${item.category===c?'selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="insp-field"><label>Related Project</label>
+          <select id="dm-project">
+            <option value="" ${!item.projectId?'selected':''}>연결 안 함</option>
+            ${store.projects.map(p=>`<option value="${p.id}" ${item.projectId===p.id?'selected':''}>${p.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="insp-field"><label>Reminder</label>
+          <select id="dm-reminder">${REMINDER_OFFSET_OPTIONS.map(o=>`<option ${item.reminderOffset===o?'selected':''}>${o}</option>`).join('')}</select>
+        </div>
+        <button class="insp-save" id="dmSaveBtn">Save</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('detailOverlay').addEventListener('click', (e)=>{ if(e.target.id==='detailOverlay') closeDetailModal(); });
+  document.getElementById('detailCloseBtn').addEventListener('click', closeDetailModal);
+  bindDateAutoFormat('dm-date','dmDateError');
+  document.getElementById('dmSaveBtn').addEventListener('click', ()=>{
+    const rawDate = document.getElementById('dm-date').value.trim();
+    if(!isValidMonthDayStr(rawDate)){
+      document.getElementById('dmDateError').textContent = 'Invalid Date — MM/DD 형식으로 입력해 주세요.';
+      return;
+    }
+    const title = document.getElementById('dm-title').value.trim();
+    if(!title) return;
+    item.date = rawDate;
+    item.title = title;
+    item.notes = document.getElementById('dm-notes').value.trim();
+    item.priority = document.getElementById('dm-priority').value;
+    item.category = document.getElementById('dm-category').value || null;
+    item.projectId = document.getElementById('dm-project').value || null;
+    item.reminderOffset = document.getElementById('dm-reminder').value;
+    scheduleSave();
+    if(detailModalState.kind==='upcoming') renderUpcoming(); else renderDeadlines();
+    closeDetailModal();
+  });
+}
+
 function renderQuickNote(){
   const ta = document.getElementById('quickNote');
   ta.value = store.quickNote || '';
@@ -2013,6 +2407,10 @@ function renderPlanner(){
 function switchPlannerSub(v){
   plannerSubView = v;
   plannerSelection = null;
+  projectPanelOpen = false;
+  projectMenuOpen = false;
+  projectMultiSelect = false;
+  projectSelectedIds.clear();
   if(v==='projects' && !selectedProjectId && store.projects.length>0){
     selectedProjectId = store.projects.slice().sort((a,b)=>b.createdAt-a.createdAt)[0].id;
   }
@@ -2352,34 +2750,91 @@ function projectRelatedNotes(name){
   return findRelatedNotes(name);
 }
 
+function sortProjectList(list){
+  const arr = list.slice();
+  if(projectSortMode==='newest') arr.sort((a,b)=>b.createdAt-a.createdAt);
+  else if(projectSortMode==='oldest') arr.sort((a,b)=>a.createdAt-b.createdAt);
+  else if(projectSortMode==='name') arr.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(projectSortMode==='progress') arr.sort((a,b)=>b.progress-a.progress);
+  return arr;
+}
+function exportProjectsJSON(){
+  const data = JSON.stringify(store.projects, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'working-journal-projects.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+function importProjectsJSON(file){
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const parsed = JSON.parse(e.target.result);
+      if(!Array.isArray(parsed)) throw new Error('invalid');
+      parsed.forEach(p=>{
+        store.projects.push(Object.assign({}, p, { id: uid(), createdAt: Date.now() }));
+      });
+      scheduleSave();
+      renderPlannerProjects();
+      alert(`${parsed.length}개의 프로젝트를 가져왔어요.`);
+    }catch(err){
+      alert('파일을 읽지 못했어요. 올바른 JSON 파일인지 확인해 주세요.');
+    }
+  };
+  reader.readAsText(file);
+}
+
 function renderPlannerProjects(){
   const ws = document.getElementById('workspace');
-  const active = store.projects.filter(p=>!p.completed).sort((a,b)=>b.createdAt-a.createdAt);
-  const completed = store.projects.filter(p=>p.completed).sort((a,b)=>b.createdAt-a.createdAt);
-  const selected = store.projects.find(p=>p.id===selectedProjectId) || active[0] || null;
+  let pool = store.projects;
+  if(projectStatusFilter==='active') pool = pool.filter(p=>!p.completed && !p.archived);
+  else if(projectStatusFilter==='completed') pool = pool.filter(p=>p.completed && !p.archived);
+  else if(projectStatusFilter==='archived') pool = pool.filter(p=>p.archived);
+  else pool = pool.filter(p=>!p.archived);
+
+  const showCompletedSplit = projectStatusFilter==='all';
+  const active = sortProjectList(showCompletedSplit ? pool.filter(p=>!p.completed) : pool);
+  const completed = showCompletedSplit ? sortProjectList(pool.filter(p=>p.completed)) : [];
+  const selected = store.projects.find(p=>p.id===selectedProjectId) || active[0] || completed[0] || null;
   if(selected) selectedProjectId = selected.id;
 
-  const listRowsHtml = active.length===0 ? `<div class="proj-empty">아직 프로젝트가 없어요.<br>오른쪽에서 첫 프로젝트를 만들어보세요.</div>` :
-    active.map(p=>{
-      const isSel = p.id===selectedProjectId;
-      return `
-        <div class="proj-row ${isSel?'selected':''}" data-pid="${p.id}">
+  const listClass = projectViewMode==='card' ? 'proj-grid' : 'proj-list';
+  const rowClass = projectViewMode==='card' ? 'proj-card' : 'proj-row';
+
+  function renderRow(p){
+    const isSel = p.id===selectedProjectId;
+    const checked = projectSelectedIds.has(p.id);
+    return `
+      <div class="${rowClass} ${isSel?'selected':''}" data-pid="${p.id}">
+        ${projectMultiSelect ? `<input type="checkbox" class="proj-check" data-check="${p.id}" ${checked?'checked':''}>` : ''}
+        <div class="pr-body">
           <div class="pr-top">
             <span class="pr-dot" style="background:${p.color};"></span>
             <span class="pr-name">${p.name}</span>
-            <span class="pr-pct">${p.progress}%</span>
+            <span class="pr-pct">${p.completed?'완료':p.progress+'%'}</span>
           </div>
           <div class="pr-bar"><div class="pr-fill" style="width:${p.progress}%; background:${p.color};"></div></div>
-          <div class="pr-meta">다음 마감 &nbsp;${p.deadline ? ddayLabel(p.deadline)+' · '+formatMonthDay(p.deadline) : '없음'}</div>
+          <div class="pr-meta">다음 마감 &nbsp;${p.deadline ? ddayLabel(p.deadline)+' · '+formatMonthDay(p.deadline) : '없음'}${p.archived?' · 보관됨':''}</div>
         </div>
-      `;
-    }).join('');
+      </div>
+    `;
+  }
 
-  const completedRowsHtml = completed.map(p=>`
-    <div class="proj-row completed-row ${p.id===selectedProjectId?'selected':''}" data-pid="${p.id}">
-      <div class="pr-top"><span class="pr-dot" style="background:${p.color};"></span><span class="pr-name">${p.name}</span><span class="pr-pct">완료</span></div>
-    </div>
-  `).join('');
+  const emptyMsg = {active:'진행 중인 프로젝트가 없어요.', completed:'완료된 프로젝트가 없어요.', archived:'보관된 프로젝트가 없어요.', all:null}[projectStatusFilter];
+  const listRowsHtml = active.length===0 ? (
+    projectStatusFilter==='all' ? `
+      <div class="proj-empty-state">
+        <div class="pe-icon">📁</div>
+        <div class="pe-title">아직 프로젝트가 없습니다.</div>
+        <div class="pe-sub">새 프로젝트를 만들어 일정을 관리해보세요.</div>
+        <button class="pe-cta" id="peCreateBtn">+ 프로젝트 만들기</button>
+      </div>
+    ` : `<div class="proj-empty">${emptyMsg}</div>`
+  ) : active.map(renderRow).join('');
+
+  const completedRowsHtml = completed.map(renderRow).join('');
 
   let detailHtml = '';
   if(!selected){
@@ -2399,7 +2854,7 @@ function renderPlannerProjects(){
           <span class="pd-title serif">${selected.name}</span>
         </div>
         <div class="pd-actions">
-          <button class="icon-btn">⋯</button>
+          <button class="icon-btn" id="pdEditBtn">✎</button>
         </div>
       </div>
       <div class="pd-meta-row">
@@ -2468,6 +2923,8 @@ function renderPlannerProjects(){
     `;
   }
 
+  const sortLabels = {newest:'최신순', oldest:'오래된순', name:'이름순(A-Z)', progress:'진행률순'};
+
   ws.innerHTML = `
     <div class="ws-header">
       <div>
@@ -2475,21 +2932,53 @@ function renderPlannerProjects(){
         <div class="ws-subtitle">프로젝트별 흐름을 설계하고 연결하세요.</div>
       </div>
       <div class="ws-actions">
-        <button class="primary-btn" id="addProjectBtn">+ 프로젝트 추가</button>
-        <button class="icon-btn">⋯</button>
+        <button class="primary-btn ${projectPanelOpen?'active':''}" id="addProjectBtn">+ 프로젝트 추가</button>
+        <div class="page-menu-wrap">
+          <button class="icon-btn" id="projMenuBtn">⋯</button>
+          <div class="page-menu proj-menu ${projectMenuOpen?'show':''}" id="projMenu">
+            <div class="pm-header">정렬</div>
+            ${Object.entries(sortLabels).map(([k,label])=>`<button class="pm-item" data-sort="${k}">${projectSortMode===k?'✓ ':''}${label}</button>`).join('')}
+            <div class="pm-divider"></div>
+            <div class="pm-header">보기 방식</div>
+            <button class="pm-item" data-viewmode="list">${projectViewMode==='list'?'✓ ':''}리스트 보기</button>
+            <button class="pm-item" data-viewmode="card">${projectViewMode==='card'?'✓ ':''}카드 보기</button>
+            <div class="pm-divider"></div>
+            <div class="pm-header">프로젝트 관리</div>
+            <button class="pm-item" data-filter="all">${projectStatusFilter==='all'?'✓ ':''}전체 보기</button>
+            <button class="pm-item" data-filter="active">${projectStatusFilter==='active'?'✓ ':''}진행 중 프로젝트만 보기</button>
+            <button class="pm-item" data-filter="completed">${projectStatusFilter==='completed'?'✓ ':''}완료된 프로젝트만 보기</button>
+            <button class="pm-item" data-filter="archived">${projectStatusFilter==='archived'?'✓ ':''}보관된 프로젝트 보기</button>
+            <div class="pm-divider"></div>
+            <div class="pm-header">일괄 작업</div>
+            <button class="pm-item" id="pmMultiSelect">${projectMultiSelect?'✓ ':''}여러 프로젝트 선택</button>
+            <button class="pm-item" id="pmImport">프로젝트 가져오기</button>
+            <button class="pm-item" id="pmExportProj">프로젝트 내보내기</button>
+            <input type="file" id="pmImportInput" accept=".json" style="display:none;">
+            <div class="pm-divider"></div>
+            <button class="pm-item" id="pmProjSettings">프로젝트 설정</button>
+          </div>
+        </div>
       </div>
     </div>
 
     ${plannerTabsHtml('projects')}
 
+    ${projectMultiSelect && projectSelectedIds.size>0 ? `
+      <div class="bulk-bar">
+        <span>${projectSelectedIds.size}개 선택됨</span>
+        <button id="bulkDeleteBtn">선택 항목 삭제</button>
+        <button id="bulkClearBtn">선택 취소</button>
+      </div>
+    ` : ''}
+
     <div class="proj-split">
       <div class="proj-list-col">
-        <div class="proj-list-head"><span>프로젝트</span><span class="pl-sort">최신순 ▾</span></div>
-        <div class="proj-list">${listRowsHtml}</div>
+        <div class="proj-list-head"><span>프로젝트</span><span class="pl-sort">${sortLabels[projectSortMode]} ▾</span></div>
+        <div class="${listClass}">${listRowsHtml}</div>
         ${completed.length>0 ? `
           <details class="proj-completed">
             <summary>완료된 프로젝트 <span>› ${completed.length}</span></summary>
-            <div class="proj-list" style="margin-top:8px;">${completedRowsHtml}</div>
+            <div class="${listClass}" style="margin-top:8px;">${completedRowsHtml}</div>
           </details>
         ` : ''}
       </div>
@@ -2498,18 +2987,96 @@ function renderPlannerProjects(){
   `;
 
   bindPlannerTabs();
+
   document.getElementById('addProjectBtn').addEventListener('click', ()=>{
     projectInspectorMode = 'create';
+    projectPanelOpen = true;
     renderRightPanel();
   });
-  ws.querySelectorAll('.proj-row[data-pid]').forEach(row=>{
-    row.addEventListener('click', ()=>{
+  const peCreateBtn = document.getElementById('peCreateBtn');
+  if(peCreateBtn) peCreateBtn.addEventListener('click', ()=>{
+    projectInspectorMode = 'create';
+    projectPanelOpen = true;
+    renderRightPanel();
+  });
+
+  document.getElementById('projMenuBtn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    projectMenuOpen = !projectMenuOpen;
+    renderPlannerProjects();
+  });
+  if(projectMenuOpen){
+    document.querySelectorAll('#projMenu [data-sort]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ projectSortMode = btn.dataset.sort; projectMenuOpen=false; renderPlannerProjects(); });
+    });
+    document.querySelectorAll('#projMenu [data-viewmode]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ projectViewMode = btn.dataset.viewmode; projectMenuOpen=false; renderPlannerProjects(); });
+    });
+    document.querySelectorAll('#projMenu [data-filter]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ projectStatusFilter = btn.dataset.filter; projectMenuOpen=false; renderPlannerProjects(); });
+    });
+    document.getElementById('pmMultiSelect').addEventListener('click', ()=>{
+      projectMultiSelect = !projectMultiSelect;
+      if(!projectMultiSelect) projectSelectedIds.clear();
+      projectMenuOpen = false;
+      renderPlannerProjects();
+    });
+    document.getElementById('pmImport').addEventListener('click', ()=>{
+      projectMenuOpen = false;
+      document.getElementById('pmImportInput').click();
+    });
+    document.getElementById('pmImportInput').addEventListener('change', (e)=>{
+      if(e.target.files[0]) importProjectsJSON(e.target.files[0]);
+    });
+    document.getElementById('pmExportProj').addEventListener('click', ()=>{
+      projectMenuOpen = false;
+      exportProjectsJSON();
+      renderPlannerProjects();
+    });
+    document.getElementById('pmProjSettings').addEventListener('click', ()=>{
+      projectMenuOpen = false;
+      alert('프로젝트 설정은 아직 준비 중이에요.');
+      renderPlannerProjects();
+    });
+  }
+
+  const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+  if(bulkDeleteBtn) bulkDeleteBtn.addEventListener('click', ()=>{
+    if(!confirm(`선택한 ${projectSelectedIds.size}개 프로젝트를 삭제할까요?`)) return;
+    store.projects = store.projects.filter(p=>!projectSelectedIds.has(p.id));
+    store.events.forEach(e=>{ if(projectSelectedIds.has(e.projectId)) e.projectId=null; });
+    projectSelectedIds.clear();
+    scheduleSave();
+    renderPlannerProjects();
+  });
+  const bulkClearBtn = document.getElementById('bulkClearBtn');
+  if(bulkClearBtn) bulkClearBtn.addEventListener('click', ()=>{ projectSelectedIds.clear(); renderPlannerProjects(); });
+
+  ws.querySelectorAll('.proj-check').forEach(cb=>{
+    cb.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const id = cb.dataset.check;
+      if(cb.checked) projectSelectedIds.add(id); else projectSelectedIds.delete(id);
+      renderPlannerProjects();
+    });
+  });
+  ws.querySelectorAll(`.${rowClass}[data-pid]`).forEach(row=>{
+    row.addEventListener('click', (e)=>{
+      if(e.target.classList.contains('proj-check')) return;
       selectedProjectId = row.dataset.pid;
+      if(projectMultiSelect) return;
       projectInspectorMode = 'view';
+      projectPanelOpen = true;
       projectDescExpanded = false;
       renderPlannerProjects();
       renderRightPanel();
     });
+  });
+  const pdEditBtn = document.getElementById('pdEditBtn');
+  if(pdEditBtn) pdEditBtn.addEventListener('click', ()=>{
+    projectInspectorMode = 'view';
+    projectPanelOpen = true;
+    renderRightPanel();
   });
   const descToggle = document.getElementById('descToggle');
   if(descToggle) descToggle.addEventListener('click', ()=>{ projectDescExpanded = !projectDescExpanded; renderPlannerProjects(); });
@@ -2561,7 +3128,7 @@ function renderProjectInspector(){
     ctx.innerHTML = `
       <div class="insp-head">
         <div class="insp-title">프로젝트 추가</div>
-        ${store.projects.length>0 ? `<button class="insp-close" id="pcClose">×</button>` : ''}
+        <button class="insp-close" id="pcClose">×</button>
       </div>
       <div class="insp-field"><label>이름</label><input type="text" id="pc-name" placeholder="예: 포트폴리오 리디자인"></div>
       <div class="insp-field"><label>카테고리</label>
@@ -2589,8 +3156,10 @@ function renderProjectInspector(){
         pcColor = sw.dataset.color;
       });
     });
-    const pcClose = document.getElementById('pcClose');
-    if(pcClose) pcClose.addEventListener('click', ()=>{ projectInspectorMode='view'; renderProjectInspector(); });
+    document.getElementById('pcClose').addEventListener('click', ()=>{
+      projectPanelOpen = false;
+      renderRightPanel();
+    });
     document.getElementById('pcSave').addEventListener('click', ()=>{
       const name = document.getElementById('pc-name').value.trim();
       if(!name) return;
@@ -2606,6 +3175,7 @@ function renderProjectInspector(){
         color: pcColor,
         description: document.getElementById('pc-desc').value.trim(),
         completed:false,
+        archived:false,
         timeline:[{id: uid(), date: todayKey(), label:'프로젝트 생성'}],
         files:[],
         createdAt: Date.now()
@@ -2626,7 +3196,7 @@ function renderProjectInspector(){
 
   ctx.innerHTML = `
     <div class="insp-head">
-      <div class="insp-title">프로젝트 정보</div>
+      <div class="insp-title">프로젝트 수정</div>
       <button class="insp-close" id="piClose">×</button>
     </div>
     <div class="insp-cat-row"><span class="d" style="background:${p.color};"></span>${p.name}</div>
@@ -2658,13 +3228,17 @@ function renderProjectInspector(){
         <button class="qa-btn" id="qaWriteJournal">✎ 저널 작성</button>
         <button class="qa-btn" id="qaAddFile">📎 파일 첨부</button>
         <button class="qa-btn" id="qaToggleDone">${p.completed?'↺ 진행중으로':'✓ 완료 처리'}</button>
+        <button class="qa-btn" id="qaToggleArchive">${p.archived?'↺ 보관 해제':'🗄 보관하기'}</button>
       </div>
     </div>
 
     <button class="insp-delete" id="piDelete">프로젝트 삭제</button>
   `;
 
-  document.getElementById('piClose').addEventListener('click', ()=>{ selectedProjectId=null; renderPlannerProjects(); renderProjectInspector(); });
+  document.getElementById('piClose').addEventListener('click', ()=>{
+    projectPanelOpen = false;
+    renderRightPanel();
+  });
   document.getElementById('piDelete').addEventListener('click', ()=>{
     if(!confirm(`'${p.name}' 프로젝트를 삭제할까요? 연결된 일정은 유지돼요.`)) return;
     store.projects = store.projects.filter(x=>x.id!==p.id);
@@ -2716,6 +3290,12 @@ function renderProjectInspector(){
   });
   document.getElementById('qaToggleDone').addEventListener('click', ()=>{
     p.completed = !p.completed;
+    scheduleSave();
+    renderPlannerProjects();
+    renderProjectInspector();
+  });
+  document.getElementById('qaToggleArchive').addEventListener('click', ()=>{
+    p.archived = !p.archived;
     scheduleSave();
     renderPlannerProjects();
     renderProjectInspector();
@@ -2951,6 +3531,17 @@ function findRelatedNotes(title){
 }
 
 /* ================= Search (basic) ================= */
+document.addEventListener('click', (e)=>{
+  if(todayMenuOpen && !e.target.closest('.page-menu-wrap')){
+    todayMenuOpen = false;
+    if(currentView==='today') renderToday();
+  }
+  if(projectMenuOpen && !e.target.closest('.page-menu-wrap')){
+    projectMenuOpen = false;
+    if(currentView==='planner' && plannerSubView==='projects') renderPlannerProjects();
+  }
+});
+
 document.getElementById('searchBtn').addEventListener('click', ()=>{
   const q = prompt('검색어를 입력하세요 (메모/일정 제목 기준)');
   if(!q) return;
